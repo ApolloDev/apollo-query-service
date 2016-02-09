@@ -18,7 +18,7 @@ class run_query:
         # contact run manager service
         r = requests.get('http://localhost:8080/run-manager-service-rest-frontend-4.0-SNAPSHOT/ws/run/' \
                          + run_id + '/files?username=' + username + '&password=' + password)
-        
+
 
 	return run_id
 
