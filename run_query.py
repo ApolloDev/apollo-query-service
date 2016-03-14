@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 from parse_scos_message import get_queries_from_scos
+import h5py
 
 """
 Author: John Levander
@@ -72,6 +73,15 @@ all_sick_by_sex_by_age_state["simulator_count_variables"]['location_admin1'] = "
 
 m_inf = -float('inf')
 p_inf = float('inf')
+
+def hdf5_to_dataframe(filename):
+    hdf5_file = h5py.File(filename, 'r')
+
+    dataset = list(hdf5_file.keys())[0]
+    hdf5_file.close()
+
+    df = pd.read_hdf(filename, key=dataset)
+    return df
 
 def is_number(s):
     try:
@@ -181,12 +191,11 @@ def process_output_options(df, scos):
     return df
 
 
-def run_query(scos, hdf5_file):
-
-    file_id = scos['file_id']
+def run_query(scos, hdf5_file, output_file):
 
     #load the simulator output into a dataframe
-    line_listing = pd.read_csv('http://research.rods.pitt.edu/line_listing_new.csv')
+    # line_listing = pd.read_csv('http://research.rods.pitt.edu/line_listing_new.csv')
+    line_listing = hdf5_to_dataframe(hdf5_file)
 
     # line_listing['species'] = line_listing['species'].astype(str)
 
@@ -197,7 +206,7 @@ def run_query(scos, hdf5_file):
 
     df = process_output_options(df, scos)
 
-    df.to_csv('/Users/nem41/Documents/apollo/python_output_test.csv', sep=',', index=False)
+    df.to_csv(output_file, sep=',', index=False)
 
 if __name__ == '__main__':
 
@@ -205,4 +214,4 @@ if __name__ == '__main__':
     root = tree.getroot()
     queries = get_queries_from_scos(root)
 
-    run_query(queries[0], '')
+    run_query(queries[0], '', 'test.csv')
