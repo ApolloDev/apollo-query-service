@@ -47,35 +47,36 @@ def process_boundary(boundary_element):
 
 def process_spatial_granularity(query, element):
     if element.text != 'none':
-        if element.text == 'admin0':
-            query["output_options"]['axes'].append('location_admin0')
-        elif element.text == 'admin1':
-            query["output_options"]['axes'].append('location_admin0')
-            query["output_options"]['axes'].append('location_admin1')
-        elif element.text == 'admin2':
-            query["output_options"]['axes'].append('location_admin0')
-            query["output_options"]['axes'].append('location_admin1')
-            query["output_options"]['axes'].append('location_admin2')
-        elif element.text == 'admin3':
-            query["output_options"]['axes'].append('location_admin0')
-            query["output_options"]['axes'].append('location_admin1')
-            query["output_options"]['axes'].append('location_admin2')
-            query["output_options"]['axes'].append('location_admin3')
-        elif element.text == 'admin4':
-            query["output_options"]['axes'].append('location_admin0')
-            query["output_options"]['axes'].append('location_admin1')
-            query["output_options"]['axes'].append('location_admin2')
-            query["output_options"]['axes'].append('location_admin3')
-            query["output_options"]['axes'].append('location_admin4')
-        elif element.text == 'admin5':
-            query["output_options"]['axes'].append('location_admin0')
-            query["output_options"]['axes'].append('location_admin1')
-            query["output_options"]['axes'].append('location_admin2')
-            query["output_options"]['axes'].append('location_admin3')
-            query["output_options"]['axes'].append('location_admin4')
-            query["output_options"]['axes'].append('location_admin5')
-        elif element.text == 'latLong':
-            print ("Error: latLong coordinates are not currently supported")
+        query["output_options"]['axes'].append('household_location_admin4')
+        # if element.text == 'admin0':
+        #     query["output_options"]['axes'].append('location_admin0')
+        # elif element.text == 'admin1':
+        #     query["output_options"]['axes'].append('location_admin0')
+        #     query["output_options"]['axes'].append('location_admin1')
+        # elif element.text == 'admin2':
+        #     query["output_options"]['axes'].append('location_admin0')
+        #     query["output_options"]['axes'].append('location_admin1')
+        #     query["output_options"]['axes'].append('location_admin2')
+        # elif element.text == 'admin3':
+        #     query["output_options"]['axes'].append('location_admin0')
+        #     query["output_options"]['axes'].append('location_admin1')
+        #     query["output_options"]['axes'].append('location_admin2')
+        #     query["output_options"]['axes'].append('location_admin3')
+        # elif element.text == 'admin4':
+        #     query["output_options"]['axes'].append('location_admin0')
+        #     query["output_options"]['axes'].append('location_admin1')
+        #     query["output_options"]['axes'].append('location_admin2')
+        #     query["output_options"]['axes'].append('location_admin3')
+        #     query["output_options"]['axes'].append('location_admin4')
+        # elif element.text == 'admin5':
+        #     query["output_options"]['axes'].append('location_admin0')
+        #     query["output_options"]['axes'].append('location_admin1')
+        #     query["output_options"]['axes'].append('location_admin2')
+        #     query["output_options"]['axes'].append('location_admin3')
+        #     query["output_options"]['axes'].append('location_admin4')
+        #     query["output_options"]['axes'].append('location_admin5')
+        # elif element.text == 'latLong':
+        #     print ("Error: latLong coordinates are not currently supported")
 
 def get_queries_from_scos(scos_xml_root_node):
 
@@ -100,10 +101,11 @@ def get_queries_from_scos(scos_xml_root_node):
                 print("Error: unsupported Apollo type namespace was used in the XML")
                 return None
 
-            if field == 'speciesToCount':
-                query["simulator_count_variables"]['species'] = {element.text}
-                query["output_options"]['axes'].append('species')
-            elif field == 'temporalGranularity':
+            # if field == 'speciesToCount':
+            #     query["simulator_count_variables"]['species'] = {element.text}
+            #     query["output_options"]['axes'].append('species')
+            # el
+            if field == 'temporalGranularity':
                 if element.text != 'entireSimulation':
                     if element.text != 'eachSimulationTimestep':
                         print('Error: unrecognized temporalGranularity. The available options are \'entireSimulation\' and \'eachSimulationTimestep\'')
@@ -111,17 +113,17 @@ def get_queries_from_scos(scos_xml_root_node):
                     query["output_options"]['axes'].append('simulator_time')
             elif field == 'spatialGranularity':
                 process_spatial_granularity(query, element)
-            elif field == 'infectionState':
+            elif field == 'infectionStates':
                 if 'infection_state' in query["simulator_count_variables"]:
-                 query["simulator_count_variables"]['infection_state'].add(element.text.upper())
+                 query["simulator_count_variables"]['infection_state'].add(element.text.lower())
                 else:
-                    query["simulator_count_variables"]['infection_state'] = {element.text.upper()}
+                    query["simulator_count_variables"]['infection_state'] = {element.text.lower()}
                     query["output_options"]['axes'].append('infection_state')
-            elif field == 'diseaseOutcome':
+            elif field == 'diseaseOutcomes':
                 if 'disease_state' in query["simulator_count_variables"]:
-                 query["simulator_count_variables"]['disease_state'].add(element.text.upper())
+                 query["simulator_count_variables"]['disease_state'].add(element.text.lower())
                 else:
-                    query["simulator_count_variables"]['disease_state'] = {element.text.upper()}
+                    query["simulator_count_variables"]['disease_state'] = {element.text.lower()}
                     query["output_options"]['axes'].append('disease_state')
             elif field == 'otherVariables':
                 process_other_variables(query, element)

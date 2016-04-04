@@ -36,10 +36,10 @@ def main(argv):
     # try:
     #   opts, args = getopt.getopt(argv,"hi:o:t:",["ifile="])
     # except getopt.GetoptError:
-    #   print('test.py -i <inputfile>')
+    #   print('py4j_test.py -i <inputfile>')
     # for opt, arg in opts:
     #     if opt == '-h':
-    #         print('test.py -i <inputfile> -o <outputlocation>')
+    #         print('py4j_test.py -i <inputfile> -o <outputlocation>')
     #         sys.exit()
     #     elif opt in ("-i", "--ifile"):
     #         filename = arg
@@ -58,8 +58,8 @@ def translate_output(filename):
     df = base_dataset_util.hdf5_to_dataframe(filename, 'apollo_aggregated_counts/table')
     print("start printing xml")
     print(datetime.datetime.now())
-    # df.to_csv('/Users/nem41/Documents/apollo/output/test2.csv', encoding='utf-8')
-    df.to_xml('/Users/nem41/Documents/apollo/output/test.xml')
+    df.to_csv('/Users/nem41/Documents/apollo/output/R0.1.4.apollo.csv', encoding='utf-8')
+    # df.to_xml('/Users/nem41/Documents/apollo/output/test.xml')
     print("done")
     print(datetime.datetime.now())
     # df.to_xml('/Users/nem41/Documents/apollo/output/temp.xml')

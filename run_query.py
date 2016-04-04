@@ -16,61 +16,6 @@ Log:
     01/19/2016: Started to implement age ranges.  Passing this off to Nick Millett for now.
 """
 
-
-# Sample Simulator Count Output Specifications
-all_sick_scos = {}
-all_sick_scos["simulator_count_variables"] = {}
-all_sick_scos["simulator_count_variables"]['infection_state'] = ["LATENT", "INFECTIOUS"]
-all_sick_scos["output_options"] = {}
-all_sick_scos["output_options"]['axes'] = {'simulator_time'}
-
-
-all_sick_by_sex = {}
-all_sick_by_sex["simulator_count_variables"] = {}
-all_sick_by_sex["simulator_count_variables"]['infection_state'] = ["LATENT", "INFECTIOUS"]
-all_sick_by_sex["simulator_count_variables"]['sex'] = ["M"]
-
-all_sick_by_sex_by_age_range = {}
-#this is the where clause
-all_sick_by_sex_by_age_range["simulator_count_variables"] = {}
-all_sick_by_sex_by_age_range["simulator_count_variables"]['infection_state'] = ["LATENT", "INFECTIOUS"]
-all_sick_by_sex_by_age_range["simulator_count_variables"]['sex'] = ["M", "F"]
-all_sick_by_sex_by_age_range["simulator_count_variables"]['age_range'] = {}
-all_sick_by_sex_by_age_range["simulator_count_variables"]['age_range']['driving_age'] = [16,999]
-all_sick_by_sex_by_age_range["simulator_count_variables"]['age_range']['voting_age'] = [18,999]
-all_sick_by_sex_by_age_range["simulator_count_variables"]['age_range']['retirement_age'] = [65,999]
-#this is the select clause
-all_sick_by_sex_by_age_range["output_options"] = {}
-all_sick_by_sex_by_age_range["output_options"]['axes'] = {'simulator_time', 'age_range'}
-
-all_sick_by_sex_by_age = {}
-#this is the where clause
-all_sick_by_sex_by_age["simulator_count_variables"] = {}
-all_sick_by_sex_by_age["simulator_count_variables"]['infection_state'] = ["LATENT", "INFECTIOUS"]
-all_sick_by_sex_by_age["simulator_count_variables"]['sex'] = ["M", "F"]
-all_sick_by_sex_by_age["simulator_count_variables"]['integer_age'] = {"min_age" : 30, "max_age" : 40}
-#this is the select clause
-all_sick_by_sex_by_age["output_options"] = {}
-all_sick_by_sex_by_age["output_options"]['axes'] = {'simulator_time', 'integer_age'}
-
-"""
-TODO: Add support for these in next version.
-all_sick_by_sex_by_age = {}
-all_sick_by_sex_by_age["simulator_count_variables"] = {}
-all_sick_by_sex_by_age["simulator_count_variables"]['infection_states'] = ["LATENT", "INFECTIOUS"]
-all_sick_by_sex_by_age["simulator_count_variables"]['sex'] = ["M", "F"]
-all_sick_by_sex_by_age["simulator_count_variables"]['integer_age'] = True
-
-
-
-all_sick_by_sex_by_age_state = {}
-all_sick_by_sex_by_age_state["simulator_count_variables"] = {}
-all_sick_by_sex_by_age_state["simulator_count_variables"]['infection_state'] = ["LATENT", "INFECTIOUS"]
-all_sick_by_sex_by_age_state["simulator_count_variables"]['sex'] = ["M", "F"]
-all_sick_by_sex_by_age_state["simulator_count_variables"]['integer_age'] = "all"
-all_sick_by_sex_by_age_state["simulator_count_variables"]['location_admin1'] = "all"
-"""
-
 m_inf = -float('inf')
 p_inf = float('inf')
 
@@ -90,7 +35,7 @@ def is_number(s):
     except ValueError:
         return False
 
-def filter_ranges(scos, df):
+def filter_ranges(scos, query):
 
     column_name = ''
     if 'age_range' in scos["simulator_count_variables"]:
@@ -100,20 +45,21 @@ def filter_ranges(scos, df):
         variable = 'household_median_income'
         column_name = 'household_median_income'
     else:
-        return df;
+        return query;
 
-    def filter_ranges_min_max(df, min, max):
+    def filter_ranges_min_max(df, min, max, query):
 
         if min == float('-inf') and max == float('inf'):
             # no filtering required
             return df
 
         if min == float('-inf'):
-            query = "(" + column_name + " <= " + str(max) + ")"
+            new_query = "(" + column_name + " <= " + str(max) + ")"
         elif max == float('inf'):
-            query = "(" + column_name + " >= " + str(min) + ")"
+            new_query = "(" + column_name + " >= " + str(min) + ")"
         else:
-            query = "(" + column_name + " >= " + str(min) + ") & (" + column_name + " <= " + str(max) + ")"
+            new_query = "(" + column_name + " >= " + str(min) + ") & (" + column_name + " <= " + str(max) + ")"
+        query = query + ' and ' + new_query;
 
         # remove rows with age below min or above max
         df = df.query(query)
@@ -123,41 +69,41 @@ def filter_ranges(scos, df):
 
 
     # get min and max from all ranges
-    min = float("inf")
-    max = -float("inf")
+    # min = float("inf")
+    # max = -float("inf")
+    # for age_range in ranges:
+    #     if ranges[age_range]['range'][0] < min:
+    #         min = ranges[age_range]['range'][0]
+    #
+    #     if ranges[age_range]['range'][1] > max:
+    #         max = ranges[age_range]['range'][1]
+    #
+    #
+    # # filter out all ages outside min and max
+    # df = filter_ranges_min_max(df, min, max)
+
+    # count = 0
     for age_range in ranges:
-        if ranges[age_range]['range'][0] < min:
-            min = ranges[age_range]['range'][0]
-
-        if ranges[age_range]['range'][1] > max:
-            max = ranges[age_range]['range'][1]
-
-
-    # filter out all ages outside min and max
-    df = filter_ranges_min_max(df, min, max)
-
-    count = 0
-    for age_range in ranges:
-        print (age_range + " bin is " + str(ranges[age_range]['range'][0]) + " to " + str(ranges[age_range]['range'][1]))
+        # print (age_range + " bin is " + str(ranges[age_range]['range'][0]) + " to " + str(ranges[age_range]['range'][1]))
         # get copy of dataframe to filter
-        dfcopy = df.copy()
-        dfcopy = filter_ranges_min_max(dfcopy, ranges[age_range]['range'][0], ranges[age_range]['range'][1])
+        # dfcopy = df.copy()
+        query = filter_ranges_min_max(ranges[age_range]['range'][0], ranges[age_range]['range'][1], query)
         # add the age range column to the data frame
-        dfcopy['age_range'] = age_range
-        if count == 0:
-            newdf = dfcopy
-        else:
-            newdf = pd.concat([newdf, dfcopy], axis=0)
-        count = count + 1
+        # dfcopy['age_range'] = age_range
+        # if count == 0:
+        #     newdf = dfcopy
+        # else:
+        #     newdf = pd.concat([newdf, dfcopy], axis=0)
+        # count = count + 1
 
-    return newdf
+    return query
 
 """
 This function creates queries in the form of: 'b == ["a", "b", "c"]'
 The query selects all rows in the dataframe where column b is equal to the value a b or c.
 """
-def create_category_query(df, col_name, vals_to_keep):
-    query = df.columns[df.columns.get_loc(col_name)] + ' == ['
+def create_category_query(col_name, vals_to_keep):
+    query = col_name + ' == ['
     for val in vals_to_keep:
         # see if val is an integer
         if is_number(val):
@@ -174,13 +120,18 @@ For example if the user
 only wanted to see the rows that contain data for MALES, it would be specified in the simulator_count_variables, and we
 would filter the FEMALES out in this function.
 """
-def filter_df(df, scos):
+def append_to_query(scos, query):
     #TODO: deal with age_range categories and integer categories
     for simulator_count_variable in scos["simulator_count_variables"]:
         if simulator_count_variable != "age_range" and simulator_count_variable != "household_median_income":
-            query = create_category_query(df, simulator_count_variable, scos['simulator_count_variables'][simulator_count_variable])
-            df = df.query(query)
-    return df
+            new_query = create_category_query(simulator_count_variable, scos['simulator_count_variables'][simulator_count_variable])
+            if query == '':
+                query = new_query
+            else:
+                query = query + ' and ' + new_query
+            # df = df.query(query)
+    # return df
+    return query
 
 
 def process_output_options(df, scos):
@@ -191,27 +142,35 @@ def process_output_options(df, scos):
     return df
 
 
+def execute_query(hdf5_file, query):
+    with open("/Users/nem41/Documents/apollo/output/query_test.xml", "w") as f:
+
+        x = pd.HDFStore(hdf5_file, "r")
+        print(x.keys())
+        i = x.select(x.keys()[0], query, chunksize=10000000)
+        for df in i:
+            for row in df.itertuples():
+                f.write(str(row) + "\n")
+
 def run_query(scos, hdf5_file, output_file):
 
-    #load the simulator output into a dataframe
-    # line_listing = pd.read_csv('http://research.rods.pitt.edu/line_listing_new.csv')
-    line_listing = hdf5_to_dataframe(hdf5_file)
+    # create single query to apply to dataset
+    query = ''
+    query = append_to_query(scos, query)
+    query = filter_ranges(scos, query)
+    print(query)
 
-    # line_listing['species'] = line_listing['species'].astype(str)
+    # apply the query
+    # execute_query(hdf5_file, query)
 
-    #Filter out rows from the dataframe that we don't want
-    df = filter_df(line_listing, scos)
+    # df = process_output_options(df, scos)
 
-    df = filter_ranges(scos, df)
-
-    df = process_output_options(df, scos)
-
-    df.to_csv(output_file, sep=',', index=False)
+    # df.to_csv(output_file, sep=',', index=False)
 
 if __name__ == '__main__':
 
-    tree = ET.parse('/Users/nem41/Documents/code_projects/apollo_projects/example-scos-messages/symptomatic_by_age_group_in_humans.xml')
+    tree = ET.parse('/Users/nem41/Documents/code_projects/apollo_projects/example-scos-messages/num_infected_by_location.xml')
     root = tree.getroot()
     queries = get_queries_from_scos(root)
 
-    run_query(queries[0], '', 'test.csv')
+    run_query(queries[0], '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', '/Users/nem41/Documents/apollo/output/query_test.csv')
