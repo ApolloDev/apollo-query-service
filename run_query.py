@@ -142,15 +142,24 @@ def process_output_options(df, scos):
     return df
 
 
-def execute_query(hdf5_file, query):
-    with open("/Users/nem41/Documents/apollo/output/query_test.xml", "w") as f:
+def execute_query(hdf5_file, query, scos):
+    hdf = pd.HDFStore(hdf5_file, "r")
 
-        x = pd.HDFStore(hdf5_file, "r")
-        print(x.keys())
-        i = x.select(x.keys()[0], query, chunksize=10000000)
-        for df in i:
-            for row in df.itertuples():
-                f.write(str(row) + "\n")
+    n = 0
+    for c in hdf.select(hdf.keys()[0], where=(query), chunksize=10000, iterator=True):
+
+        output_axes = scos["output_options"]['axes']
+        axis_indices = []
+        for axis in output_axes:
+            l = c.index.names.index(axis)
+            axis_indices.append(l)
+        if n == 0:
+            r = c.groupby(level=axis_indices).sum()
+        else:
+            r = r.add(c.groupby(level=axis_indices).sum(), fill_value=0)
+        n += 1
+
+    r.to_csv("/Users/nem41/Documents/apollo/output/test.csv", sep=',')
 
 def run_query(scos, hdf5_file, output_file):
 
@@ -161,7 +170,7 @@ def run_query(scos, hdf5_file, output_file):
     print(query)
 
     # apply the query
-    # execute_query(hdf5_file, query)
+    execute_query(hdf5_file, query, scos)
 
     # df = process_output_options(df, scos)
 
