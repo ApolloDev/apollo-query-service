@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import urllib.request as urllib2
 
 APOLLO_TYPES_NAMESPACE = 'http://types.apollo.pitt.edu/v4_0/'
+QUERY_SERVICE_NAMESPACE = 'http://query_service_types.apollo.pitt.edu/v4_0/'
 XSI_TYPE = '{http://www.w3.org/2001/XMLSchema-instance}type'
 
 def process_other_variables(query, base):
@@ -81,11 +82,10 @@ def process_spatial_granularity(query, element):
 def get_queries_from_scos(scos_xml_root_node):
 
     queries = []
-    for count_specification in scos_xml_root_node.findall('{' + APOLLO_TYPES_NAMESPACE + '}SimulatorCountOutputSpecification'):
+    for count_specification in scos_xml_root_node.findall('{' + QUERY_SERVICE_NAMESPACE + '}simulatorCountOutputSpecifications'):
 
         query = {}
         query["simulator_count_variables"] = {}
-        query["file_id"] = -1; # FIX THIS
         query["output_options"] = {}
         query["output_options"]['axes'] = []
 
@@ -127,10 +127,20 @@ def get_queries_from_scos(scos_xml_root_node):
                     query["output_options"]['axes'].append('disease_state')
             elif field == 'otherVariables':
                 process_other_variables(query, element)
+            elif field == 'simulatorCountOutputSpecificationId':
+                query['file_id'] = element.text
 
 
         queries.append(query)
-    return queries
+        query_container = {}
+        query_container['queries'] = queries;
+        query_container['output_formats'] = []
+
+        for output_type_element in scos_xml_root_node.findall('{' + QUERY_SERVICE_NAMESPACE + '}outputFormats'):
+            output_type = output_type_element.text
+            query_container['output_formats'].append(output_type);
+
+    return query_container
 
 def get_queries(url):
     tree = ET.ElementTree(file=urllib2.urlopen(url))
@@ -140,7 +150,7 @@ def get_queries(url):
 
 if __name__ == '__main__':
 
-    tree = ET.ElementTree(file=urllib2.urlopen('http://localhost/num_infected_by_location.xml'))
+    tree = ET.ElementTree(file=urllib2.urlopen('http://localhost/run_message.xml'))
     root = tree.getroot()
     queries = get_queries_from_scos(root)
     print(queries)

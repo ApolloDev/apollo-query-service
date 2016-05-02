@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
+from bokeh.io import output_file
+
 from parse_scos_message import get_queries_from_scos
 import h5py
 
@@ -142,7 +144,7 @@ def process_output_options(df, scos):
     return df
 
 
-def execute_query(hdf5_file, query, scos):
+def execute_query(hdf5_file, query, scos, output_file):
     hdf = pd.HDFStore(hdf5_file, "r")
 
     n = 0
@@ -159,9 +161,33 @@ def execute_query(hdf5_file, query, scos):
             r = r.add(c.groupby(level=axis_indices).sum(), fill_value=0)
         n += 1
 
-    r.to_csv("/Users/nem41/Documents/apollo/output/test.csv", sep=',')
+    return r
 
-def run_query(scos, hdf5_file, output_file):
+
+def print_datasets(dataframe, output_formats, base_directory, file_id):
+    files = []
+    for output_format in output_formats:
+        file_container = {}
+        extension = output_format.lower()
+        name = str(file_id) + '.' + extension
+        output_file = base_directory + '/' + name
+        file_container['local_file'] = output_format
+        file_container['name'] = name
+        file_container['type'] = 'QUERY_RESULT'
+
+        if extension == 'csv':
+            dataframe.to_csv(output_file, sep=',')
+            file_container['format'] = 'TEXT'
+            files.append(file_container)
+        elif extension == 'hdf':
+            dataframe.to_hdf(output_file, 'query_results')
+            file_container['format'] = 'HDF'
+            files.append(file_container)
+
+    return files
+
+
+def run_query(scos, hdf5_file, output_formats, base_directory, file_id):
 
     # create single query to apply to dataset
     query = ''
@@ -170,11 +196,12 @@ def run_query(scos, hdf5_file, output_file):
     print(query)
 
     # apply the query
-    execute_query(hdf5_file, query, scos)
+    dataframe = execute_query(hdf5_file, query, scos, output_file)
 
-    # df = process_output_options(df, scos)
+    # print the datasets
+    files = print_datasets(dataframe, output_formats, base_directory, file_id)
+    return files
 
-    # df.to_csv(output_file, sep=',', index=False)
 
 if __name__ == '__main__':
 
@@ -182,4 +209,4 @@ if __name__ == '__main__':
     root = tree.getroot()
     queries = get_queries_from_scos(root)
 
-    run_query(queries[0], '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', '/Users/nem41/Documents/apollo/output/query_test.csv')
+    run_query(queries[0], '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', "/Users/nem41/Documents/apollo/output/test.csv")
