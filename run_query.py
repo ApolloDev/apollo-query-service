@@ -205,8 +205,13 @@ def run_query(scos, hdf5_file, output_formats, base_directory, file_id):
 
 if __name__ == '__main__':
 
-    tree = ET.parse('/Users/nem41/Documents/code_projects/apollo_projects/example-scos-messages/num_infected_by_location.xml')
+    tree = ET.parse('/Users/nem41/Documents/sites/filestore-service/0d8e7898cb841a2108df1f3e47b64b5b/2/run_message.xml')
     root = tree.getroot()
-    queries = get_queries_from_scos(root)
+    query_container = get_queries_from_scos(root)
+    queries = query_container['queries']
+    output_formats = query_container['output_formats']
+    scos = queries[0]
+    file_id = scos['file_id']
 
-    run_query(queries[0], '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', "/Users/nem41/Documents/apollo/output/test.csv")
+    run_query(scos, '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', output_formats,
+              "/Users/nem41/Documents/apollo/output/", file_id)

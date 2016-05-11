@@ -78,7 +78,7 @@ def run_query_thread(username, password, run_id):
             set_status('FAILED', 'The query has failed: ' + str(e), run_id, username, password)
         except Exception as e2:
             print('Could not set error status for query run ' + str(run_id) + '. Message was: ' \
-                  + str(e2))
+                  + str(e2) + '. Original error was ' + str(e))
 
 def get_files_list(run_id):
     list_files_result = urllib.request.urlopen(FILE_SERVICE_URL + '/' + str(run_id)).read()
