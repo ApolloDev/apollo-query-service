@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
-from bokeh.io import output_file
-
 from parse_scos_message import get_queries_from_scos
 import h5py
+import os
 
 """
 Author: John Levander
@@ -49,11 +48,11 @@ def filter_ranges(scos, query):
     else:
         return query;
 
-    def filter_ranges_min_max(df, min, max, query):
+    def filter_ranges_min_max(min, max, query):
 
         if min == float('-inf') and max == float('inf'):
             # no filtering required
-            return df
+            return query
 
         if min == float('-inf'):
             new_query = "(" + column_name + " <= " + str(max) + ")"
@@ -63,40 +62,12 @@ def filter_ranges(scos, query):
             new_query = "(" + column_name + " >= " + str(min) + ") & (" + column_name + " <= " + str(max) + ")"
         query = query + ' and ' + new_query;
 
-        # remove rows with age below min or above max
-        df = df.query(query)
-        return df
+        return query
 
     ranges = scos["simulator_count_variables"][variable]
 
-
-    # get min and max from all ranges
-    # min = float("inf")
-    # max = -float("inf")
-    # for age_range in ranges:
-    #     if ranges[age_range]['range'][0] < min:
-    #         min = ranges[age_range]['range'][0]
-    #
-    #     if ranges[age_range]['range'][1] > max:
-    #         max = ranges[age_range]['range'][1]
-    #
-    #
-    # # filter out all ages outside min and max
-    # df = filter_ranges_min_max(df, min, max)
-
-    # count = 0
     for age_range in ranges:
-        # print (age_range + " bin is " + str(ranges[age_range]['range'][0]) + " to " + str(ranges[age_range]['range'][1]))
-        # get copy of dataframe to filter
-        # dfcopy = df.copy()
         query = filter_ranges_min_max(ranges[age_range]['range'][0], ranges[age_range]['range'][1], query)
-        # add the age range column to the data frame
-        # dfcopy['age_range'] = age_range
-        # if count == 0:
-        #     newdf = dfcopy
-        # else:
-        #     newdf = pd.concat([newdf, dfcopy], axis=0)
-        # count = count + 1
 
     return query
 
@@ -144,7 +115,7 @@ def process_output_options(df, scos):
     return df
 
 
-def execute_query(hdf5_file, query, scos, output_file):
+def execute_query_hdf(hdf5_file, query, scos):
     hdf = pd.HDFStore(hdf5_file, "r")
 
     n = 0
@@ -163,6 +134,10 @@ def execute_query(hdf5_file, query, scos, output_file):
 
     return r
 
+def execute_query_csv(csv_file, query):
+    df = pd.read_csv(csv_file)
+    df = df.query(query)
+    return df
 
 def print_datasets(dataframe, output_formats, base_directory, file_id):
     files = []
@@ -187,7 +162,7 @@ def print_datasets(dataframe, output_formats, base_directory, file_id):
     return files
 
 
-def run_query(scos, hdf5_file, output_formats, base_directory, file_id):
+def run_query(scos, input_file, output_formats, base_directory, file_id):
 
     # create single query to apply to dataset
     query = ''
@@ -195,8 +170,14 @@ def run_query(scos, hdf5_file, output_formats, base_directory, file_id):
     query = filter_ranges(scos, query)
     print(query)
 
-    # apply the query
-    dataframe = execute_query(hdf5_file, query, scos, output_file)
+    filename, file_extension = os.path.splitext(input_file)
+
+    if file_extension == '.h5' or file_extension == '.hdf5' or file_extension == '.hdf':
+        # apply the query
+        dataframe = execute_query_hdf(input_file, query, scos)
+    elif file_extension == '.csv':
+        dataframe = execute_query_csv(input_file, query)
+        dataframe = process_output_options(dataframe, scos)
 
     # print the datasets
     files = print_datasets(dataframe, output_formats, base_directory, file_id)
@@ -213,5 +194,5 @@ if __name__ == '__main__':
     scos = queries[0]
     file_id = scos['file_id']
 
-    run_query(scos, '/Users/nem41/Documents/apollo/output/R0.1.4.apollo.h5.04.01.16', output_formats,
+    run_query(scos, '/Users/nem41/Documents/apollo/output/replication0.csv', output_formats,
               "/Users/nem41/Documents/apollo/output/", file_id)
