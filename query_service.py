@@ -111,13 +111,13 @@ def get_scos_file_url(run_id):
 
 def get_hdf5_file_url(run_id):
     # these will be the properties for the hdf5 file
-    file_label = 'output.hd5'
+    file_label = run_id + '.apollo.h5'
     file_type = 'SIMULATOR_LOG_FILE'
-    file_format = 'ZIP'
+    file_format = 'HDF'
 
-    # return get_output_file_url(run_id, file_label, file_type, file_format)
+    return get_output_file_url(run_id, file_label, file_type, file_format)
 
-    return 'http://localhost/R0.1.4.apollo.h5.04.01.16'
+    # return 'http://localhost/R0.1.4.apollo.h5.04.01.16'
 
 
 def set_status(status, message, run_id, username, password):
