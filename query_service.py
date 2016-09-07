@@ -1,8 +1,8 @@
-from boto.ses.exceptions import SESMaxSendingRateExceededError
 from flask import Flask, request
 import parse_scos_message
 import run_query
 import urllib.request
+from urllib.request import Request, urlopen
 import os
 import xml.etree.ElementTree as ET
 import _thread as thread
@@ -81,7 +81,9 @@ def run_query_thread(username, password, run_id):
                   + str(e2) + '. Original error was ' + str(e))
 
 def get_files_list(run_id):
-    list_files_result = urllib.request.urlopen(FILE_SERVICE_URL + '/' + str(run_id)).read()
+    q = Request(FILE_SERVICE_URL + '/' + str(run_id))
+    q.add_header('Accept', 'application/xml')
+    list_files_result = urlopen(q).read()
     tree = ET.fromstring(list_files_result)
 
     for entry in tree.findall('{' + SERVICES_COMMON_NAMESPACE + '}responseBody'):
@@ -89,7 +91,9 @@ def get_files_list(run_id):
 
 
 def get_output_file_url(run_id, file_label, file_type, file_format):
-    response = urllib.request.urlopen(FILE_SERVICE_URL + '/' + str(run_id) + '/url?fileName=' + file_label + '&fileFormat=' + file_format + '&fileType=' + file_type).read()
+    q = Request(FILE_SERVICE_URL + '/' + str(run_id) + '/url?fileName=' + file_label + '&fileFormat=' + file_format + '&fileType=' + file_type)
+    q.add_header('Accept', 'application/xml')
+    response = urlopen(q).read()
     tree = ET.fromstring(response)
     for entry in tree.findall('{' + SERVICES_COMMON_NAMESPACE + '}responseBody'):
         file_url = entry.text
@@ -138,6 +142,7 @@ def create_response(code):
 
 if __name__ == "__main__":
     app.run()
+
     # data = urllib.parse.urlencode({'username': 'apollo_demo', 'password': 'apollo_demo', 'urlToFile': 'http://localhost/query-service/154/query_output_5.csv', \
     #                                'fileName': 'test.csv', 'fileType': 'QUERY_RESULT', 'fileFormat': 'TEXT'})
     # binary_data = data.encode('UTF-8')
