@@ -99,6 +99,10 @@ def get_file_identification_from_scos(scos_xml_root_node):
 
         new_file_id[field] = element.text
 
+    run_id_list = scos_xml_root_node.find('{' + QUERY_SERVICE_NAMESPACE + '}runId')
+    for element in run_id_list:
+        new_file_id['run_id'] = element.text
+
     return new_file_id
 
 

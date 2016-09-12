@@ -48,7 +48,7 @@ def run_query_thread(username, password, run_id):
 
         set_status('RUNNING', 'The query is running', run_id, username, password)
 
-        hdf5_file_url = get_hdf5_file_url(run_id, query_container['file_identification'])  # get url from file store
+        hdf5_file_url = get_hdf5_file_url(query_container['file_identification'])  # get url from file store
         hdf5_file = run_dir + 'simulator_output.hdf5'
         urllib.request.urlretrieve(hdf5_file_url, hdf5_file)
 
@@ -116,6 +116,7 @@ def get_hdf5_file_url(run_id, file_identification):
     file_label = file_identification['label']
     file_type = file_identification['type']
     file_format = file_identification['format']
+    run_id = file_identification['run_id']
     #
     return get_output_file_url(run_id, file_label, file_type, file_format)
 
