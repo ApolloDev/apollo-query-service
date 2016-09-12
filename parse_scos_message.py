@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import urllib.request as urllib2
 
 APOLLO_TYPES_NAMESPACE = 'http://types.apollo.pitt.edu/v4_0/'
+FILESTORE_TYPES_NAMESPACE = 'http://filestore_service_types.apollo.pitt.edu/v4_0/'
 QUERY_SERVICE_NAMESPACE = 'http://query_service_types.apollo.pitt.edu/v4_0/'
 XSI_TYPE = '{http://www.w3.org/2001/XMLSchema-instance}type'
 
@@ -79,6 +80,28 @@ def process_spatial_granularity(query, element):
         # elif element.text == 'latLong':
         #     print ("Error: latLong coordinates are not currently supported")
 
+def get_file_identification_from_scos(scos_xml_root_node):
+    file_identification = scos_xml_root_node.find('{' + QUERY_SERVICE_NAMESPACE + '}outputFileIdentification')
+
+    new_file_id = {}
+
+    for element in file_identification:
+
+        namespace = ''
+        field = ''
+        if '}' in element.tag:
+            field = element.tag.split('}', 1)[1]  # strip all namespaces
+            namespace = (element.tag.split('}', 1)[0])[1:]  # strip all namespaces
+
+        if namespace != FILESTORE_TYPES_NAMESPACE:
+            print("Error: unsupported Apollo type namespace was used in the XML")
+            return None
+
+        new_file_id[field] = element.text
+
+    return new_file_id
+
+
 def get_queries_from_scos(scos_xml_root_node):
 
     queries = []
@@ -143,10 +166,15 @@ def get_queries_from_scos(scos_xml_root_node):
     return query_container
 
 def get_queries(url):
+    query_container = {}
     tree = ET.ElementTree(file=urllib2.urlopen(url))
     root = tree.getroot()
     queries = get_queries_from_scos(root)
-    return queries
+    file_identification = get_file_identification_from_scos(root)
+    query_container['query_objects'] = queries
+    query_container['file_identification'] = file_identification
+
+    return query_container
 
 if __name__ == '__main__':
 

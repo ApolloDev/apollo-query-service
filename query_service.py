@@ -39,8 +39,8 @@ def run_query_thread(username, password, run_id):
         query_file_url = get_scos_file_url(run_id)
 
         query_container = parse_scos_message.get_queries(query_file_url)
-        queries = query_container['queries']
-        output_formats = query_container['output_formats']
+        queries = query_container['query_objects']['queries']
+        output_formats = query_container['query_objects']['output_formats']
 
         run_dir = LOCAL_FILES_DIR + str(run_id) + '/'
         if not os.path.exists(run_dir):
@@ -48,7 +48,7 @@ def run_query_thread(username, password, run_id):
 
         set_status('RUNNING', 'The query is running', run_id, username, password)
 
-        hdf5_file_url = get_hdf5_file_url(run_id)  # get url from file store
+        hdf5_file_url = get_hdf5_file_url(run_id, query_container['file_identification'])  # get url from file store
         hdf5_file = run_dir + 'simulator_output.hdf5'
         urllib.request.urlretrieve(hdf5_file_url, hdf5_file)
 
@@ -109,12 +109,12 @@ def get_scos_file_url(run_id):
 
     # return 'http://localhost/num_infected_by_location.xml'
 
-def get_hdf5_file_url(run_id):
+def get_hdf5_file_url(run_id, file_identification):
     # these will be the properties for the hdf5 file
-    file_label = run_id + '.apollo.h5'
-    file_type = 'SIMULATOR_LOG_FILE'
-    file_format = 'HDF'
-
+    file_label = file_identification['label']
+    file_type = file_identification['type']
+    file_format = file_identification['format']
+    #
     return get_output_file_url(run_id, file_label, file_type, file_format)
 
     # return 'http://localhost/R0.1.4.apollo.h5.04.01.16'
