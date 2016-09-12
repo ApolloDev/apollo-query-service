@@ -91,7 +91,9 @@ def get_files_list(run_id):
 
 
 def get_output_file_url(run_id, file_label, file_type, file_format):
-    q = Request(FILE_SERVICE_URL + '/' + str(run_id) + '/url?fileName=' + file_label + '&fileFormat=' + file_format + '&fileType=' + file_type)
+    query = FILE_SERVICE_URL + '/' + str(run_id) + '/url?fileName=' + file_label + '&fileFormat=' + file_format + '&fileType=' + file_type
+    print(query)
+    q = Request(query)
     q.add_header('Accept', 'application/xml')
     response = urlopen(q).read()
     tree = ET.fromstring(response)
