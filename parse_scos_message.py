@@ -99,9 +99,8 @@ def get_file_identification_from_scos(scos_xml_root_node):
 
         new_file_id[field] = element.text
 
-    run_id_list = scos_xml_root_node.find('{' + QUERY_SERVICE_NAMESPACE + '}runId')
-    for element in run_id_list:
-        new_file_id['run_id'] = element.text
+    run_id = scos_xml_root_node.find('{' + QUERY_SERVICE_NAMESPACE + '}runId')
+    new_file_id['run_id'] = run_id.text
 
     return new_file_id
 
@@ -182,7 +181,7 @@ def get_queries(url):
 
 if __name__ == '__main__':
 
-    tree = ET.ElementTree(file=urllib2.urlopen('http://localhost/run_message.xml'))
+    tree = ET.ElementTree(file=urllib2.urlopen('http://localhost/run_message2.xml'))
     root = tree.getroot()
-    queries = get_queries_from_scos(root)
-    print(queries)
+    file_identification = get_file_identification_from_scos(root)
+    print(file_identification)
