@@ -111,7 +111,7 @@ def get_scos_file_url(run_id):
 
     # return 'http://localhost/num_infected_by_location.xml'
 
-def get_hdf5_file_url(run_id, file_identification):
+def get_hdf5_file_url(file_identification):
     # these will be the properties for the hdf5 file
     file_label = file_identification['label']
     file_type = file_identification['type']
