@@ -151,7 +151,7 @@ def print_datasets(dataframe, output_formats, base_directory, file_id):
         file_container['type'] = 'QUERY_RESULT'
 
         if extension == 'csv':
-            dataframe.to_csv(output_file, sep=',')
+            dataframe.to_csv(output_file, sep=',', index=False)
             file_container['format'] = 'TEXT'
             files.append(file_container)
         elif extension == 'hdf':
@@ -186,7 +186,7 @@ def run_query(scos, input_file, output_formats, base_directory, file_id):
 
 if __name__ == '__main__':
 
-    tree = ET.parse('/Users/nem41/Documents/sites/filestore-service/0d8e7898cb841a2108df1f3e47b64b5b/2/run_message.xml')
+    tree = ET.parse('/Users/nem41/Documents/sites/filestore-service/5b50c689507e30325ab7d4c59d583116/2/run_message.xml')
     root = tree.getroot()
     query_container = get_queries_from_scos(root)
     queries = query_container['queries']
@@ -194,5 +194,5 @@ if __name__ == '__main__':
     scos = queries[0]
     file_id = scos['file_id']
 
-    run_query(scos, '/Users/nem41/Documents/apollo/output/replication0.csv', output_formats,
+    run_query(scos, '/Users/nem41/Documents/sites/filestore-service/63bccfae254cd269c2d9b710241e6616/4/385.apollo.csv', output_formats,
               "/Users/nem41/Documents/apollo/output/", file_id)

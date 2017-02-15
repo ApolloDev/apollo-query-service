@@ -49,7 +49,10 @@ def run_query_thread(username, password, run_id):
         set_status('RUNNING', 'The query is running', run_id, username, password)
 
         hdf5_file_url = get_hdf5_file_url(query_container['file_identification'])  # get url from file store
-        hdf5_file = run_dir + 'simulator_output.hdf5'
+        if '.h5' in hdf5_file_url or '.hdf' in hdf5_file_url or '.hdf5' in hdf5_file_url:
+            hdf5_file = run_dir + 'simulator_output.hdf5'
+        elif '.csv' in hdf5_file_url:
+            hdf5_file = run_dir + 'simulator_output.csv'
         urllib.request.urlretrieve(hdf5_file_url, hdf5_file)
 
         for i in range(0, len(queries)):
